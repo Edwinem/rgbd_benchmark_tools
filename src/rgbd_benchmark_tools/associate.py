@@ -83,14 +83,15 @@ def associate(first_list, second_list,offset,max_difference):
     matches -- list of matched tuples ((stamp1,data1),(stamp2,data2))
     
     """
-    first_keys = first_list.keys()
-    second_keys = second_list.keys()
+    first_keys = list(first_list.keys())
+    second_keys = list(second_list.keys())
     potential_matches = [(abs(a - (b + offset)), a, b) 
                          for a in first_keys 
                          for b in second_keys 
                          if abs(a - (b + offset)) < max_difference]
     potential_matches.sort()
     matches = []
+
     for diff, a, b in potential_matches:
         if a in first_keys and b in second_keys:
             first_keys.remove(a)
@@ -111,6 +112,7 @@ if __name__ == '__main__':
     parser.add_argument('--first_only', help='only output associated lines from first file', action='store_true')
     parser.add_argument('--offset', help='time offset added to the timestamps of the second file (default: 0.0)',default=0.0)
     parser.add_argument('--max_difference', help='maximally allowed time difference for matching entries (default: 0.02)',default=0.02)
+    parser.add_argument('--out',help='name of file it should output the association to')
     args = parser.parse_args()
 
     first_list = read_file_list(args.first_file)
@@ -118,11 +120,28 @@ if __name__ == '__main__':
 
     matches = associate(first_list, second_list,float(args.offset),float(args.max_difference))    
 
+
+
+    output_file=0
+    if args.out:
+        output_file=open(args.out,'w')
+
     if args.first_only:
         for a,b in matches:
-            print("%f %s"%(a," ".join(first_list[a])))
+            str=("%f %s"%(a," ".join(first_list[a])))
+            if not args.out:
+                print(str)
+                #print("%f %s"%(a," ".join(first_list[a])))
+            else:
+                output_file.write(str+'\n')
+
     else:
         for a,b in matches:
-            print("%f %s %f %s"%(a," ".join(first_list[a]),b-float(args.offset)," ".join(second_list[b])))
+            str = ("%f %s %f %s"%(a," ".join(first_list[a]),b-float(args.offset)," ".join(second_list[b])))
+            if not args.out:
+                #print("%f %s %f %s"%(a," ".join(first_list[a]),b-float(args.offset)," ".join(second_list[b])))
+                print(str)
+            else:
+                output_file.write(str+'\n')
             
         
